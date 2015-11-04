@@ -10,11 +10,8 @@ logger = logging.getLogger(__name__)
 class SendEmail(object):
 
     def __init__(self):
-        #self.item_count = item_count
-        #self.items_scraped = 0
-
         self.fromaddr = 'bert.carremans@gmail.com'
-        self.toaddrs  = self.fromaddr
+        self.toaddr  = 'bert.carremans@gmail.com'
 
     @classmethod
     def from_crawler(cls, crawler):
@@ -23,19 +20,16 @@ class SendEmail(object):
         if not crawler.settings.getbool('MYEXT_ENABLED'):
             raise NotConfigured
 
-        # get the number of items from settings
-        #item_count = crawler.settings.getint('MYEXT_ITEMCOUNT', 1000)
-
         # instantiate the extension object
         ext = cls()
 
         # connect the extension object to signals
         crawler.signals.connect(ext.spider_opened, signal=signals.spider_opened)
         crawler.signals.connect(ext.spider_closed, signal=signals.spider_closed)
-        #crawler.signals.connect(ext.item_scraped, signal=signals.item_scraped)
 
         # return the extension object
         return ext
+
 
     def spider_opened(self, spider):
         logger.info("opened spider %s", spider.name)
@@ -43,16 +37,15 @@ class SendEmail(object):
     def spider_closed(self, spider):
         logger.info("closed spider %s", spider.name)
 
+        # Getting films with a rating above a threshold
         topfilms_overview = ""
         con = lite.connect('topfilms.db')
-        cur = con.execute("SELECT title, channel, start_ts, rating FROM topfilms WHERE rating >= 6")
+        cur = con.execute("SELECT title, channel, start_ts, plot, genre, release_date, rating FROM topfilms WHERE rating >= 6")
         for row in cur:
-            topfilm = ' - '.join([row[0], row [1], row [2], row [3]])
+            topfilm = ' - '.join([row[0], row [1], row [2], row [3], row [4], row [5], row [6]])
             topfilms_overview = "\r\n".join([topfilms_overview, topfilm])
         con.close()
 
-        #fromaddr = 'bert.carremans@gmail.com'
-        #toaddrs  = 'bert.carremans@gmail.com'
         msg = "\r\n".join([
           "From: " + self.fromaddr,
           "To: " + self.toaddr,
@@ -65,11 +58,5 @@ class SendEmail(object):
         server.ehlo()
         server.starttls()
         server.login(username,password)
-        server.sendmail(self.fromaddr, self.toaddrs, msg)
+        server.sendmail(self.fromaddr, self.toaddr, msg)
         server.quit()
-    '''
-    def item_scraped(self, item, spider):
-        self.items_scraped += 1
-        if self.items_scraped % self.item_count == 0:
-            logger.info("scraped %d items", self.items_scraped)
-    '''

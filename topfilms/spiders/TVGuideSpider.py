@@ -2,7 +2,7 @@ import scrapy
 import unidecode
 import urllib
 
-from scrapy.mail import MailSender
+from fuzzywuzzy import fuzz
 
 from topfilms.items import TVGuideItem
 
@@ -36,9 +36,6 @@ class TVGuideSpider(scrapy.Spider):
 
                     # Extract information from the Movie Database www.themoviedb.org
                     request = scrapy.Request("https://www.themoviedb.org/search?query="+title,callback=self.parse_tmdb)
-
-                    #request = scrapy.FormRequest(url="https://www.themoviedb.org/",formdata={'query': title},callback=self.parse_tmdb)
-
                     request.meta['item'] = item  # Pass the item with the request to the detail page
 
                     yield request
@@ -47,14 +44,17 @@ class TVGuideSpider(scrapy.Spider):
     def parse_tmdb(self, response):
         item = response.meta['item']  # Use the passed item
 
-        #item['genre'] = response.xpath('.//span[@class="genres"][1]/text()').extract()
-        #item['plot'] = response.xpath('.//p[@class="overview"][1]/text()').extract()
-        item['rating'] = response.xpath('//span[@class="vote_average"][1]/text()').extract_first()
+        tmdb_title = response.xpath('//a[@class="title result"][1]/text()').extract_first()
+        match_ratio = fuzz.ratio(item['title'], tmdb_title)
 
-
-        #item['release_date'] = response.xpath('.//span[@class="release_date"][1]/text()').extract()
-
-        return item
+        if match_ratio > 90:
+            item['genre'] = response.xpath('.//span[@class="genres"][1]/text()').extract_first()
+            item['plot'] = response.xpath('.//p[@class="overview"][1]/text()').extract_first()
+            item['rating'] = response.xpath('//span[@class="vote_average"][1]/text()').extract_first()
+            item['release_date'] = response.xpath('.//span[@class="release_date"][1]/text()').extract_first()
+            yield item
+        else:
+            return
 
 
 

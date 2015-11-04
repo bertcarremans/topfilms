@@ -21,14 +21,20 @@ class StoreInDBPipeline(object):
 			title, \
 			channel, \
 			start_ts, \
-			rating \
+			rating, \
+			genre, \
+			plot, \
+			release_date \
 			) \
-		VALUES( ?, ?, ?, ? )",
+		VALUES( ?, ?, ?, ?, ?, ?, ? )",
 		(
 			item['title'],
             item['channel'],
             item['start_ts'],
-			float(item['rating'])
+			float(item['rating']),
+			item['genre'],
+			item['plot'],
+			item['release_date']
 		))
 		self.con.commit()
 
@@ -47,7 +53,10 @@ class StoreInDBPipeline(object):
 			title TEXT, \
             channel TEXT, \
             start_ts TEXT, \
-			rating TEXT \
+			rating TEXT, \
+			genre TEXT, \
+			plot TEXT, \
+			release_date TEXT \
 			)")
 
 
