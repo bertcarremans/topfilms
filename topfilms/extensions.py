@@ -42,8 +42,16 @@ class SendEmail(object):
         con = lite.connect('topfilms.db')
         cur = con.execute("SELECT title, channel, start_ts, plot, genre, release_date, rating FROM topfilms WHERE rating >= 6")
         for row in cur:
-            topfilm = ' - '.join([row[0], row [1], row [2], row [3], row [4], row [5], row [6]])
-            topfilms_overview = "\r\n".join([topfilms_overview, topfilm])
+            title = row[0]
+            channel = row[1]
+            start_ts = row[2]
+            plot = row[3].encode('ascii', 'ignore')
+            genre = row[4]
+            release_date = row[5].rstrip()[-4:]
+            rating = row[6]
+            topfilm = ' - '.join([title, channel, start_ts, release_date, rating, genre])
+            topfilm = topfilm + "\r\n" + plot
+            topfilms_overview = "\r\n\r\n".join([topfilms_overview, topfilm])
         con.close()
 
         msg = "\r\n".join([

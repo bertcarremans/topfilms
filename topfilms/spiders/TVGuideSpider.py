@@ -21,17 +21,19 @@ class TVGuideSpider(scrapy.Spider):
         for col_inner in response.xpath('//div[@class="grid__col__inner"]'):
             chnl = col_inner.xpath('.//div[@class="tv-guide__channel"]/h6/a/text()').extract_first()
 
-            if chnl in ['EEN', 'CANVAS', 'VTM', '2BE', 'VITAYA', 'VIJF', 'NPO1', 'NPO2', 'NPO3']:
+            if chnl in ['EEN', 'CANVAS', 'VTM', '2BE', 'VITAYA', 'VIER', 'VIJF', 'NPO1', 'NPO2', 'NPO3']:
                 for program in col_inner.xpath('.//div[@class="program"]'):
                     item = TVGuideItem()
                     item['channel'] = chnl
-                    title = program.xpath('.//div[@class="title"]/a/text()').extract()
-                    title = unidecode.unidecode(title[0])  # Replace special characters with characters without accents, ...
+                    title = program.xpath('.//div[@class="title"]/a/text()').extract_first()
+                    title = unidecode.unidecode(title)  # Replace special characters with characters without accents, ...
+
+                    title = title.replace('.', '')
                     title = urllib.quote_plus(title)  # Create valid url parameter
                     item['title'] = program.xpath('.//div[@class="title"]/a/text()').extract_first()
                     item['start_ts'] = program.xpath('.//div[@class="time"]/text()').extract_first()
 
-                    print item
+                    #print item
                     print "******* https://www.themoviedb.org/search?query="+title
 
                     # Extract information from the Movie Database www.themoviedb.org
