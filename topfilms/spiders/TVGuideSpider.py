@@ -2,22 +2,27 @@ import scrapy
 import unidecode
 import urllib
 
+from scrapy.spiders import CrawlSpider, Rule
+from scrapy.linkextractors import LinkExtractor
+#from scrapy.selector import HtmlXPathSelector
+
+
 from fuzzywuzzy import fuzz
 
 from topfilms.items import TVGuideItem
 
-class TVGuideSpider(scrapy.Spider):
+class TVGuideSpider(CrawlSpider):
     name = "tvguide"
     allowed_domains = ["nieuwsblad.be", "themoviedb.org"]
-    start_urls = [
-        "http://www.nieuwsblad.be/tv-gids/vandaag/film/",
-        #"http://www.nieuwsblad.be/tv-gids/morgen/film",
-        #"http://www.nieuwsblad.be/tv-gids/overmorgen/film"
+    start_urls = ["http://www.nieuwsblad.be/tv-gids/vandaag/film"]
 
-    ]
+    # Extract the links from the navigation per day
+    # We will not crawl the films for yesterday
+    rules = (
+        Rule(LinkExtractor(allow=(), deny=(r'\/gisteren'), restrict_xpaths=('//a[@class="button button--beta"]',)), callback="parse_by_day", follow= True),
+    )
 
-
-    def parse(self, response):
+    def parse_by_day(self, response):
         for col_inner in response.xpath('//div[@class="grid__col__inner"]'):
             chnl = col_inner.xpath('.//div[@class="tv-guide__channel"]/h6/a/text()').extract_first()
 
@@ -47,16 +52,18 @@ class TVGuideSpider(scrapy.Spider):
         item = response.meta['item']  # Use the passed item
 
         tmdb_title = response.xpath('//a[@class="title result"][1]/text()').extract_first()
-        match_ratio = fuzz.ratio(item['title'], tmdb_title)
 
-        if match_ratio > 90:
-            item['genre'] = response.xpath('.//span[@class="genres"][1]/text()').extract_first()
-            item['plot'] = response.xpath('.//p[@class="overview"][1]/text()').extract_first()
-            item['rating'] = response.xpath('//span[@class="vote_average"][1]/text()').extract_first()
-            item['release_date'] = response.xpath('.//span[@class="release_date"][1]/text()').extract_first()
-            yield item
-        else:
-            return
+        if tmdb_title:  # Check if movie occurs on TMDB
+            match_ratio = fuzz.ratio(item['title'], tmdb_title)
+
+            if match_ratio > 90:
+                item['genre'] = response.xpath('.//span[@class="genres"][1]/text()').extract_first()
+                item['plot'] = response.xpath('.//p[@class="overview"][1]/text()').extract_first()
+                item['rating'] = response.xpath('//span[@class="vote_average"][1]/text()').extract_first()
+                item['release_date'] = response.xpath('.//span[@class="release_date"][1]/text()').extract_first()
+                yield item
+            else:
+                return
 
 
 
