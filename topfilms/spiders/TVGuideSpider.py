@@ -23,6 +23,9 @@ class TVGuideSpider(CrawlSpider):
     )
 
     def parse_by_day(self, response):
+
+        film_day_long = response.xpath('//div[@class="grid__col__inner"]/p/text()').extract_first()
+
         for col_inner in response.xpath('//div[@class="grid__col__inner"]'):
             chnl = col_inner.xpath('.//div[@class="tv-guide__channel"]/h6/a/text()').extract_first()
 
@@ -30,22 +33,19 @@ class TVGuideSpider(CrawlSpider):
                 for program in col_inner.xpath('.//div[@class="program"]'):
                     item = TVGuideItem()
                     item['channel'] = chnl
-                    title = program.xpath('.//div[@class="title"]/a/text()').extract_first()
-                    title = unidecode.unidecode(title)  # Replace special characters with characters without accents, ...
-
-                    title = title.replace('.', '')
-                    title = urllib.quote_plus(title)  # Create valid url parameter
                     item['title'] = program.xpath('.//div[@class="title"]/a/text()').extract_first()
                     item['start_ts'] = program.xpath('.//div[@class="time"]/text()').extract_first()
+                    item['film_day_long'] = film_day_long.rsplit(',',1)[-1].strip()
 
-                    #print item
-                    print "******* https://www.themoviedb.org/search?query="+title
+                    detail_link = program.xpath('.//div[@class="title"]/a/@href').extract_first()
+                    url_part = detail_link.rsplit('/',1)[-1]
 
                     # Extract information from the Movie Database www.themoviedb.org
-                    request = scrapy.Request("https://www.themoviedb.org/search?query="+title,callback=self.parse_tmdb)
+                    request = scrapy.Request("https://www.themoviedb.org/search?query="+url_part,callback=self.parse_tmdb)
                     request.meta['item'] = item  # Pass the item with the request to the detail page
 
                     yield request
+
 
 
     def parse_tmdb(self, response):

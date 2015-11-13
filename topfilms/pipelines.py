@@ -21,16 +21,18 @@ class StoreInDBPipeline(object):
 			title, \
 			channel, \
 			start_ts, \
+			film_day_long, \
 			rating, \
 			genre, \
 			plot, \
 			release_date \
 			) \
-		VALUES( ?, ?, ?, ?, ?, ?, ? )",
+		VALUES( ?, ?, ?, ?, ?, ?, ?, ? )",
 		(
 			item['title'],
             item['channel'],
             item['start_ts'],
+            item['film_day_long'],
 			float(item['rating']),
 			item['genre'],
 			item['plot'],
@@ -53,6 +55,7 @@ class StoreInDBPipeline(object):
 			title TEXT, \
             channel TEXT, \
             start_ts TEXT, \
+            film_day_long TEXT, \
 			rating TEXT, \
 			genre TEXT, \
 			plot TEXT, \
