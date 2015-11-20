@@ -5,13 +5,15 @@ from scrapy.exceptions import NotConfigured
 import smtplib
 import sqlite3 as lite
 
+from config import *
+
 logger = logging.getLogger(__name__)
 
 class SendEmail(object):
 
     def __init__(self):
-        self.fromaddr = 'bert.carremans@gmail.com'
-        self.toaddr  = 'bert.carremans@gmail.com'
+        self.fromaddr = FROMADDR
+        self.toaddr  = TOADDR
 
     @classmethod
     def from_crawler(cls, crawler):
@@ -40,29 +42,49 @@ class SendEmail(object):
         # Getting films with a rating above a threshold
         topfilms_overview = ""
         con = lite.connect('topfilms.db')
-        cur = con.execute("SELECT title, channel, start_ts, plot, genre, release_date, rating FROM topfilms WHERE rating >= 6")
-        for row in cur:
-            title = row[0]
-            channel = row[1]
-            start_ts = row[2]
-            plot = row[3].encode('ascii', 'ignore')
-            genre = row[4]
-            release_date = row[5].rstrip()[-4:]
-            rating = row[6]
-            topfilm = ' - '.join([title, channel, start_ts, release_date, rating, genre])
-            topfilm = topfilm + "\r\n" + plot
-            topfilms_overview = "\r\n\r\n".join([topfilms_overview, topfilm])
+        cur = con.execute("SELECT title, channel, start_ts, film_date_long, plot, genre, release_date, rating, tmdb_link, nb_votes "
+                          "FROM topfilms "
+                          "WHERE rating >= 6.5 "
+                          "ORDER BY film_date_short, start_ts")
+
+        data=cur.fetchall()
+
+        if len(data) > 0:  # Check if we have records in the query result
+            for row in data:
+                title = row[0].encode('ascii', 'ignore')
+                channel = row[1]
+                start_ts = row[2]
+                film_date_long = row[3]
+                plot = row[4].encode('ascii', 'ignore')
+                genre = row[5]
+                release_date = row[6].rstrip()
+                rating = row[7]
+                tmdb_link = row[8]
+                nb_votes = row[9]
+                topfilm = ' - '.join([title, channel, film_date_long, start_ts])
+                topfilm = topfilm + "\r\n" + "Release date: " + release_date
+                topfilm = topfilm + "\r\n" + "Genre: " + str(genre)
+                topfilm = topfilm + "\r\n" + "TMDB rating: " + rating + " from " + nb_votes + " votes"
+                topfilm = topfilm + "\r\n" + plot
+                topfilm = topfilm + "\r\n" + "More info on: " + tmdb_link
+                topfilms_overview = "\r\n\r\n".join([topfilms_overview, topfilm])
+
         con.close()
+
+        if len(topfilms_overview) > 0:
+            message = topfilms_overview
+        else:
+            message = "There are no top rated films for the coming week."
 
         msg = "\r\n".join([
           "From: " + self.fromaddr,
           "To: " + self.toaddr,
           "Subject: Top Films Overview",
-          topfilms_overview
+          message
           ])
-        username = 'bert.carremans'
-        password = 'avbgptnzwikwjkws'
-        server = smtplib.SMTP('smtp.gmail.com:587')
+        username = UNAME
+        password = PW
+        server = smtplib.SMTP(GMAIL)
         server.ehlo()
         server.starttls()
         server.login(username,password)

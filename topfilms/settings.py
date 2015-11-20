@@ -52,12 +52,17 @@ DOWNLOAD_DELAY=2
 #DOWNLOADER_MIDDLEWARES = {
 #    'topfilms.middlewares.MyCustomDownloaderMiddleware': 543,
 #}
+DOWNLOADER_MIDDLEWARES = {
+    'scrapy.downloadermiddleware.useragent.UserAgentMiddleware': None,
+    'scrapy_fake_useragent.middleware.RandomUserAgentMiddleware': 400,
+}
 
 # Enable or disable extensions
 # See http://scrapy.readthedocs.org/en/latest/topics/extensions.html
 MYEXT_ENABLED = True
 EXTENSIONS = {
     'topfilms.extensions.SendEmail': 500,
+    'scrapy.telnet.TelnetConsole': None
 }
 
 # Configure item pipelines

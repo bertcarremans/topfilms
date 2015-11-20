@@ -10,7 +10,6 @@ class StoreInDBPipeline(object):
 		self.createTopFilmsTable()
 
 
-
 	def process_item(self, item, spider):
 		self.storeInDb(item)
 		return item
@@ -18,25 +17,31 @@ class StoreInDBPipeline(object):
 
 	def storeInDb(self, item):
 		self.cur.execute("INSERT INTO topfilms(\
-			title, \
-			channel, \
-			start_ts, \
-			film_day_long, \
-			rating, \
-			genre, \
-			plot, \
-			release_date \
-			) \
-		VALUES( ?, ?, ?, ?, ?, ?, ?, ? )",
+		title, \
+		channel, \
+		start_ts, \
+		film_date_long, \
+		film_date_short, \
+		rating, \
+		genre, \
+		plot, \
+		tmdb_link, \
+		release_date, \
+		nb_votes \
+		) \
+		VALUES( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )",
 		(
-			item['title'],
-            item['channel'],
-            item['start_ts'],
-            item['film_day_long'],
-			float(item['rating']),
-			item['genre'],
-			item['plot'],
-			item['release_date']
+		item['title'],
+		item['channel'],
+		item['start_ts'],
+		item['film_date_long'],
+		item['film_date_short'],
+		float(item['rating']),
+		item['genre'],
+		item['plot'],
+		item['tmdb_link'],
+		item['release_date'],
+		item['nb_votes']
 		))
 		self.con.commit()
 
@@ -52,15 +57,18 @@ class StoreInDBPipeline(object):
 
 	def createTopFilmsTable(self):
 		self.cur.execute("CREATE TABLE IF NOT EXISTS topfilms(id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, \
-			title TEXT, \
-            channel TEXT, \
-            start_ts TEXT, \
-            film_day_long TEXT, \
-			rating TEXT, \
-			genre TEXT, \
-			plot TEXT, \
-			release_date TEXT \
-			)")
+		title TEXT, \
+		channel TEXT, \
+		start_ts TEXT, \
+		film_date_long TEXT, \
+		film_date_short TEXT, \
+		rating TEXT, \
+		genre TEXT, \
+		plot TEXT, \
+		tmdb_link TEXT, \
+		release_date TEXT, \
+		nb_votes \
+		)")
 
 
 	def dropTopFilmsTable(self):
