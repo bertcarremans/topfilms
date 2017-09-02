@@ -6,4 +6,4 @@ On my blog I wrote a few articles that explain step-by-step how the code of this
 4. [Using extensions in scrapy](http://www.bertcarremans.be/using-extensions-in-scrapy/)
 5. [Avoding IP banning](http://www.bertcarremans.be/avoiding-ip-banning-with-the-scrapy-framework/)
 
-For further questions you can comment on the blog posts or contact me via Twitter (@bertcarremans)
+For further questions you can comment on the blog posts or contact me via Twitter ([@bertcarremans](https://twitter.com/BertCarremans))
